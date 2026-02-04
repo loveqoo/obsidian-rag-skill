@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Obsidian RAG CLI - Semantic search for Git-based Obsidian vaults."""
+"""Obsidian RAG CLI - Git 기반 옵시디언 Vault 시맨틱 검색."""
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
-# Add lib to path
+# lib 경로 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
 from lib.chunker import chunk_markdown_by_headers
@@ -21,18 +22,18 @@ from lib.git_utils import get_changed_files, get_current_commit, is_git_repo
 
 
 def cmd_full_index(args: argparse.Namespace) -> int:
-    """Full index command - index all markdown files."""
+    """전체 인덱싱 명령 - 모든 마크다운 파일을 인덱싱한다."""
     if not is_git_repo():
-        print(json.dumps({"error": "Not a git repository"}))
+        print(json.dumps({"error": "Git 저장소가 아닙니다"}))
         return 1
 
     vault_path = get_vault_path()
     manager = ChromaManager()
 
-    # Clear existing data
+    # 기존 데이터 삭제
     cleared = manager.clear()
 
-    # Get all markdown files
+    # 모든 마크다운 파일 가져오기
     changes = get_changed_files(since_commit=None)
     all_files = changes["added"]
 
@@ -54,7 +55,7 @@ def cmd_full_index(args: argparse.Namespace) -> int:
         except Exception as e:
             errors.append({"file": file_path, "error": str(e)})
 
-    # Save current commit as last indexed
+    # 현재 커밋을 마지막 인덱싱 커밋으로 저장
     try:
         current_commit = get_current_commit()
         set_last_indexed_commit(current_commit)
@@ -77,9 +78,9 @@ def cmd_full_index(args: argparse.Namespace) -> int:
 
 
 def cmd_incremental_update(args: argparse.Namespace) -> int:
-    """Incremental update command - update only changed files."""
+    """증분 업데이트 명령 - 변경된 파일만 업데이트한다."""
     if not is_git_repo():
-        print(json.dumps({"error": "Not a git repository"}))
+        print(json.dumps({"error": "Git 저장소가 아닙니다"}))
         return 1
 
     vault_path = get_vault_path()
@@ -87,15 +88,15 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
     last_commit = get_last_indexed_commit()
 
     if last_commit is None:
-        # No previous index, do full index
+        # 이전 인덱스가 없으면 전체 인덱싱 실행
         print(
             json.dumps(
-                {"message": "No previous index found. Running full index.", "action": "full-index"}
+                {"message": "이전 인덱스가 없습니다. 전체 인덱싱을 실행합니다.", "action": "full-index"}
             )
         )
         return cmd_full_index(args)
 
-    # Get changed files
+    # 변경된 파일 가져오기
     changes = get_changed_files(since_commit=last_commit)
 
     added_count = 0
@@ -105,7 +106,7 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
     chunks_deleted = 0
     errors = []
 
-    # Process deleted files
+    # 삭제된 파일 처리
     for file_path in changes["deleted"]:
         try:
             deleted = manager.delete_file(file_path)
@@ -114,7 +115,7 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
         except Exception as e:
             errors.append({"file": file_path, "error": str(e)})
 
-    # Process added and modified files
+    # 추가/수정된 파일 처리
     for file_path in changes["added"] + changes["modified"]:
         full_path = vault_path / file_path
         if not full_path.exists():
@@ -133,7 +134,7 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
         except Exception as e:
             errors.append({"file": file_path, "error": str(e)})
 
-    # Update last indexed commit
+    # 마지막 인덱싱 커밋 업데이트
     try:
         current_commit = get_current_commit()
         set_last_indexed_commit(current_commit)
@@ -159,20 +160,20 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
 
 
 def cmd_search(args: argparse.Namespace) -> int:
-    """Search command - semantic search in the vault."""
+    """검색 명령 - Vault에서 시맨틱 검색을 수행한다."""
     if not is_git_repo():
-        print(json.dumps({"error": "Not a git repository"}))
+        print(json.dumps({"error": "Git 저장소가 아닙니다"}))
         return 1
 
     manager = ChromaManager()
 
-    # Check if index exists
+    # 인덱스 존재 여부 확인
     stats = manager.get_stats()
     if stats["total_chunks"] == 0:
         print(
             json.dumps(
                 {
-                    "error": "No index found. Run 'full-index' first.",
+                    "error": "인덱스가 없습니다. 먼저 'full-index'를 실행하세요.",
                     "query": args.query,
                     "results": [],
                     "total": 0,
@@ -196,58 +197,97 @@ def cmd_search(args: argparse.Namespace) -> int:
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
-    """Stats command - show index statistics."""
+    """통계 명령 - 인덱스 통계를 표시한다."""
     if not is_git_repo():
-        print(json.dumps({"error": "Not a git repository"}))
+        print(json.dumps({"error": "Git 저장소가 아닙니다"}))
         return 1
 
     manager = ChromaManager()
     stats = manager.get_stats()
 
-    # Add last indexed commit
+    # 마지막 인덱싱 커밋 추가
     stats["last_indexed_commit"] = get_last_indexed_commit()
 
     print(json.dumps(stats, indent=2, ensure_ascii=False))
     return 0
 
 
+def cmd_test(args: argparse.Namespace) -> int:
+    """테스트 명령 - pytest로 테스트를 실행한다."""
+    script_dir = Path(__file__).parent
+    tests_dir = script_dir / "tests"
+
+    if not tests_dir.exists():
+        print(json.dumps({"error": "테스트 디렉토리를 찾을 수 없습니다", "path": str(tests_dir)}))
+        return 1
+
+    # pytest 실행
+    pytest_args = [sys.executable, "-m", "pytest", str(tests_dir)]
+
+    if args.verbose:
+        pytest_args.append("-v")
+
+    if args.pattern:
+        pytest_args.extend(["-k", args.pattern])
+
+    if args.coverage:
+        pytest_args.extend(["--cov=lib", "--cov-report=term-missing"])
+
+    result = subprocess.run(pytest_args, cwd=script_dir)
+
+    return result.returncode
+
+
 def main() -> int:
-    """Main entry point."""
+    """메인 진입점."""
     parser = argparse.ArgumentParser(
-        description="Obsidian RAG - Semantic search for Git-based Obsidian vaults"
+        description="Obsidian RAG - Git 기반 옵시디언 Vault 시맨틱 검색"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # full-index command
+    # full-index 명령
     parser_full = subparsers.add_parser(
-        "full-index", help="Index all markdown files in the vault"
+        "full-index", help="Vault의 모든 마크다운 파일 인덱싱"
     )
     parser_full.set_defaults(func=cmd_full_index)
 
-    # incremental-update command
+    # incremental-update 명령
     parser_incr = subparsers.add_parser(
-        "incremental-update", help="Update index with changed files since last index"
+        "incremental-update", help="마지막 인덱싱 이후 변경된 파일 업데이트"
     )
     parser_incr.set_defaults(func=cmd_incremental_update)
 
-    # search command
+    # search 명령
     parser_search = subparsers.add_parser(
-        "search", help="Search the vault using semantic similarity"
+        "search", help="시맨틱 유사도 기반 Vault 검색"
     )
     parser_search.add_argument(
-        "--query", "-q", required=True, help="Search query text"
+        "--query", "-q", required=True, help="검색 쿼리 텍스트"
     )
     parser_search.add_argument(
-        "--top-k", "-k", type=int, default=5, help="Number of results to return (default: 5)"
+        "--top-k", "-k", type=int, default=5, help="반환할 결과 수 (기본값: 5)"
     )
     parser_search.add_argument(
-        "--file-filter", "-f", help="Filter results by file path prefix"
+        "--file-filter", "-f", help="파일 경로 접두사로 결과 필터링"
     )
     parser_search.set_defaults(func=cmd_search)
 
-    # stats command
-    parser_stats = subparsers.add_parser("stats", help="Show index statistics")
+    # stats 명령
+    parser_stats = subparsers.add_parser("stats", help="인덱스 통계 표시")
     parser_stats.set_defaults(func=cmd_stats)
+
+    # test 명령
+    parser_test = subparsers.add_parser("test", help="테스트 실행")
+    parser_test.add_argument(
+        "-v", "--verbose", action="store_true", help="상세 출력"
+    )
+    parser_test.add_argument(
+        "-k", "--pattern", help="특정 패턴의 테스트만 실행"
+    )
+    parser_test.add_argument(
+        "--coverage", action="store_true", help="커버리지 리포트 생성"
+    )
+    parser_test.set_defaults(func=cmd_test)
 
     args = parser.parse_args()
     return args.func(args)

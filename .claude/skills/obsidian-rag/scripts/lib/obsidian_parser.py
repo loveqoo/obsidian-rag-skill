@@ -1,4 +1,4 @@
-"""Obsidian-specific markdown parsing utilities."""
+"""옵시디언 마크다운 파싱 유틸리티."""
 
 import re
 from typing import Any
@@ -7,10 +7,10 @@ import yaml
 
 
 def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
-    """Parse YAML frontmatter from markdown content.
+    """마크다운 콘텐츠에서 YAML 프론트매터를 파싱한다.
 
     Returns:
-        Tuple of (frontmatter_dict, content_without_frontmatter)
+        (프론트매터 딕셔너리, 프론트매터 제외 콘텐츠) 튜플
     """
     if not content.startswith("---"):
         return {}, content
@@ -38,13 +38,13 @@ def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
 
 
 def extract_wikilinks(content: str) -> list[str]:
-    """Extract all wikilinks from content.
+    """콘텐츠에서 모든 위키링크를 추출한다.
 
-    Handles:
-    - [[link]]
-    - [[link|alias]]
-    - [[link#heading]]
-    - [[link#heading|alias]]
+    지원 형식:
+    - [[링크]]
+    - [[링크|별칭]]
+    - [[링크#헤딩]]
+    - [[링크#헤딩|별칭]]
     """
     pattern = r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]+)?\]\]"
     matches = re.findall(pattern, content)
@@ -52,24 +52,24 @@ def extract_wikilinks(content: str) -> list[str]:
 
 
 def extract_tags(content: str) -> list[str]:
-    """Extract all tags from content.
+    """콘텐츠에서 모든 태그를 추출한다.
 
-    Handles:
-    - #tag
-    - #tag/nested
-    - Tags in frontmatter are handled separately
+    지원 형식:
+    - #태그
+    - #태그/중첩태그
+    - 프론트매터의 태그는 별도 처리
     """
-    # Match #tag but not inside code blocks or URLs
+    # #태그 매칭 (코드 블록이나 URL 내부 제외)
     pattern = r"(?<!\S)#([a-zA-Z][a-zA-Z0-9_/\-]*)"
     matches = re.findall(pattern, content)
     return list(set(matches))
 
 
 def extract_tags_from_frontmatter(frontmatter: dict) -> list[str]:
-    """Extract tags from frontmatter."""
+    """프론트매터에서 태그를 추출한다."""
     tags = frontmatter.get("tags", [])
     if isinstance(tags, str):
-        # Handle comma-separated tags
+        # 쉼표로 구분된 태그 처리
         tags = [t.strip() for t in tags.split(",")]
     elif not isinstance(tags, list):
         tags = []
@@ -77,12 +77,12 @@ def extract_tags_from_frontmatter(frontmatter: dict) -> list[str]:
 
 
 def get_title_from_content(content: str, frontmatter: dict) -> str:
-    """Extract title from frontmatter or first heading."""
-    # Try frontmatter title first
+    """프론트매터 또는 첫 번째 헤딩에서 제목을 추출한다."""
+    # 프론트매터 title 우선
     if frontmatter.get("title"):
         return str(frontmatter["title"])
 
-    # Try first H1 heading
+    # 첫 번째 H1 헤딩 시도
     lines = content.split("\n")
     for line in lines:
         if line.startswith("# "):
@@ -92,31 +92,31 @@ def get_title_from_content(content: str, frontmatter: dict) -> str:
 
 
 def clean_content_for_embedding(content: str) -> str:
-    """Clean markdown content for embedding.
+    """임베딩을 위해 마크다운 콘텐츠를 정제한다.
 
-    Removes:
-    - Wikilinks syntax (keeps text)
-    - Image embeds
-    - Code blocks (optional)
-    - Excessive whitespace
+    제거 항목:
+    - 위키링크 문법 (텍스트는 유지)
+    - 이미지 임베드
+    - 코드 블록 (선택적)
+    - 과도한 공백
     """
-    # Remove image embeds ![[...]]
+    # 이미지 임베드 제거 ![[...]]
     content = re.sub(r"!\[\[[^\]]+\]\]", "", content)
 
-    # Convert wikilinks to plain text [[link|alias]] -> alias, [[link]] -> link
+    # 위키링크를 일반 텍스트로 변환 [[링크|별칭]] -> 별칭, [[링크]] -> 링크
     content = re.sub(r"\[\[([^\]|]+)\|([^\]]+)\]\]", r"\2", content)
     content = re.sub(r"\[\[([^\]]+)\]\]", r"\1", content)
 
-    # Remove markdown image syntax ![alt](url)
+    # 마크다운 이미지 문법 제거 ![alt](url)
     content = re.sub(r"!\[[^\]]*\]\([^)]+\)", "", content)
 
-    # Convert markdown links [text](url) to just text
+    # 마크다운 링크를 텍스트로 변환 [텍스트](url) -> 텍스트
     content = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", content)
 
-    # Remove HTML tags
+    # HTML 태그 제거
     content = re.sub(r"<[^>]+>", "", content)
 
-    # Normalize whitespace
+    # 공백 정규화
     content = re.sub(r"\n{3,}", "\n\n", content)
     content = re.sub(r" {2,}", " ", content)
 

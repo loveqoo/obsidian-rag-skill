@@ -37,11 +37,42 @@ python scripts/obsidian_rag.py incremental-update
 python scripts/obsidian_rag.py search --query "검색어" --top-k 5
 ```
 
+### 통계
+인덱스 통계를 확인합니다.
+```bash
+python scripts/obsidian_rag.py stats
+```
+
+### 테스트
+테스트를 실행하여 기능을 검증합니다.
+```bash
+python scripts/obsidian_rag.py test           # 기본 실행
+python scripts/obsidian_rag.py test -v        # 상세 출력
+python scripts/obsidian_rag.py test -k "파서"  # 특정 패턴 테스트만 실행
+```
+
 ## Git 훅 설치
-pre-push 훅을 설치하여 푸시 전 자동으로 증분 업데이트를 실행합니다.
+Git 훅을 설치하여 push/pull 시 자동으로 인덱스를 업데이트합니다.
 ```bash
 ./scripts/install_hook.sh
 ```
+
+설치되는 훅:
+- **pre-push**: 푸시 전 변경된 마크다운 파일 인덱싱
+- **post-merge**: pull 후 새로 받은 마크다운 파일 인덱싱
+
+## 제거
+스킬을 완전히 제거하고 원래 상태로 복원합니다.
+```bash
+./scripts/uninstall.sh
+```
+
+제거 시 처리되는 항목:
+- `.gitignore` → `.gitignore_backup`에서 복원
+- Git 훅 (pre-push, post-merge) 제거 또는 복원
+- ChromaDB 데이터 삭제
+- 설정 파일 삭제
+- 스킬 폴더 삭제 (선택)
 
 ## 출력 형식
 검색 결과는 JSON 형식으로 출력됩니다:

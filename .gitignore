@@ -1,2 +1,28 @@
+# ChromaDB
 chroma_db/
+
+# Virtual environment
 .claude/skills/obsidian-rag/.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.eggs/
+*.egg-info/
+
+# Obsidian RAG 사용자 설정
+.obsidian_rag_config.json
+
+# Test/Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store

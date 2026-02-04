@@ -1,4 +1,4 @@
-"""Markdown chunking utilities for Obsidian RAG."""
+"""Obsidian RAG용 마크다운 청킹 유틸리티."""
 
 import re
 from dataclasses import dataclass
@@ -16,7 +16,7 @@ from .obsidian_parser import (
 
 @dataclass
 class Chunk:
-    """A chunk of markdown content with metadata."""
+    """메타데이터를 포함한 마크다운 콘텐츠 청크."""
 
     file_path: str
     chunk_index: int
@@ -29,29 +29,29 @@ class Chunk:
 def chunk_markdown_by_headers(
     file_path: Path, min_chunk_size: int = 100, max_chunk_size: int = 2000
 ) -> list[Chunk]:
-    """Split markdown file into chunks based on headers.
+    """마크다운 파일을 헤더 기준으로 청크로 분할한다.
 
-    Strategy:
-    - Split on H1 and H2 headers
-    - Keep content under headers together
-    - Merge small chunks with previous chunk
-    - Split overly large chunks by paragraphs
+    전략:
+    - H1, H2 헤더 기준으로 분할
+    - 헤더 아래 콘텐츠는 함께 유지
+    - 작은 청크는 이전 청크와 병합
+    - 큰 청크는 문단 단위로 분할
     """
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     frontmatter, body = parse_frontmatter(content)
 
-    # Extract document-level metadata
+    # 문서 레벨 메타데이터 추출
     title = get_title_from_content(body, frontmatter)
     frontmatter_tags = extract_tags_from_frontmatter(frontmatter)
     all_wikilinks = extract_wikilinks(body)
 
-    # Split by headers (H1 and H2)
+    # 헤더 기준 분할 (H1, H2)
     header_pattern = r"^(#{1,2})\s+(.+)$"
     lines = body.split("\n")
 
-    sections: list[tuple[str, int, list[str]]] = []  # (heading, level, lines)
+    sections: list[tuple[str, int, list[str]]] = []  # (헤딩, 레벨, 라인들)
     current_heading = ""
     current_level = 0
     current_lines: list[str] = []
@@ -59,7 +59,7 @@ def chunk_markdown_by_headers(
     for line in lines:
         match = re.match(header_pattern, line)
         if match:
-            # Save previous section
+            # 이전 섹션 저장
             if current_lines or current_heading:
                 sections.append((current_heading, current_level, current_lines))
 
@@ -69,11 +69,11 @@ def chunk_markdown_by_headers(
         else:
             current_lines.append(line)
 
-    # Save last section
+    # 마지막 섹션 저장
     if current_lines or current_heading:
         sections.append((current_heading, current_level, current_lines))
 
-    # Convert sections to chunks
+    # 섹션을 청크로 변환
     chunks: list[Chunk] = []
     file_path_str = str(file_path)
 
@@ -83,10 +83,10 @@ def chunk_markdown_by_headers(
         if not section_content and not heading:
             continue
 
-        # Clean content for embedding
+        # 임베딩용 콘텐츠 정제
         cleaned_content = clean_content_for_embedding(section_content)
 
-        # Add heading to content for context
+        # 컨텍스트를 위해 헤딩을 콘텐츠에 추가
         if heading:
             full_content = f"{heading}\n\n{cleaned_content}" if cleaned_content else heading
         else:
@@ -95,9 +95,9 @@ def chunk_markdown_by_headers(
         if not full_content:
             continue
 
-        # Handle chunk size
+        # 청크 크기 처리
         if len(full_content) > max_chunk_size:
-            # Split large chunks by paragraphs
+            # 큰 청크는 문단 단위로 분할
             paragraphs = full_content.split("\n\n")
             current_chunk_content = ""
 
@@ -137,7 +137,7 @@ def chunk_markdown_by_headers(
                     )
                 )
         elif len(full_content) < min_chunk_size and chunks:
-            # Merge small chunks with previous
+            # 작은 청크는 이전 청크와 병합
             prev_chunk = chunks[-1]
             merged_content = prev_chunk.content + "\n\n" + full_content
             chunks[-1] = Chunk(
@@ -162,7 +162,7 @@ def chunk_markdown_by_headers(
                 )
             )
 
-    # Re-index chunks after merging
+    # 병합 후 청크 인덱스 재정렬
     for i, chunk in enumerate(chunks):
         chunk.chunk_index = i
 
@@ -179,8 +179,8 @@ def _create_chunk(
     frontmatter_tags: list[str],
     frontmatter: dict,
 ) -> Chunk:
-    """Create a chunk with metadata."""
-    # Extract inline tags from this chunk
+    """메타데이터를 포함한 청크를 생성한다."""
+    # 이 청크에서 인라인 태그 추출
     inline_tags = extract_tags(content)
     all_tags = list(set(frontmatter_tags + inline_tags))
 
