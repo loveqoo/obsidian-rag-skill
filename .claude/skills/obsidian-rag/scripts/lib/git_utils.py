@@ -1,4 +1,4 @@
-"""Obsidian RAG용 Git 유틸리티."""
+"""Git utilities for Obsidian RAG."""
 
 import subprocess
 from pathlib import Path
@@ -8,7 +8,7 @@ from .config import get_project_root
 
 
 def run_git_command(args: list[str], cwd: Optional[Path] = None) -> str:
-    """Git 명령을 실행하고 출력을 반환한다."""
+    """Run a Git command and return the output."""
     cwd = cwd or get_project_root()
     result = subprocess.run(
         ["git"] + args,
@@ -21,28 +21,28 @@ def run_git_command(args: list[str], cwd: Optional[Path] = None) -> str:
 
 
 def get_current_commit() -> str:
-    """현재 HEAD 커밋 SHA를 반환한다."""
+    """Return the current HEAD commit SHA."""
     return run_git_command(["rev-parse", "HEAD"])
 
 
 def get_changed_files(
     since_commit: Optional[str] = None, file_pattern: str = "*.md"
 ) -> dict[str, list[str]]:
-    """특정 커밋 이후 변경된 파일 목록을 반환한다.
+    """Return list of files changed since a specific commit.
 
     Args:
-        since_commit: 비교 기준 커밋. None이면 모든 추적 파일 반환
-        file_pattern: 파일 필터링 글롭 패턴
+        since_commit: Commit to compare against. If None, returns all tracked files.
+        file_pattern: Glob pattern for file filtering.
 
     Returns:
-        'added', 'modified', 'deleted' 키를 가진 딕셔너리
+        Dict with 'added', 'modified', 'deleted' keys.
     """
     project_root = get_project_root()
 
     if since_commit is None:
-        # 모든 마크다운 파일 반환
+        # Return all markdown files
         all_files = list(project_root.glob("**/*.md"))
-        # 숨김 디렉토리와 chroma_db 제외
+        # Exclude hidden directories and chroma_db
         valid_files = [
             str(f.relative_to(project_root))
             for f in all_files
@@ -52,12 +52,12 @@ def get_changed_files(
         return {"added": valid_files, "modified": [], "deleted": []}
 
     try:
-        # 상태와 함께 diff 가져오기
+        # Get diff with status
         output = run_git_command(
             ["diff", "--name-status", since_commit, "HEAD", "--", file_pattern]
         )
     except subprocess.CalledProcessError:
-        # 커밋이 존재하지 않으면 모든 파일을 added로 반환
+        # If commit doesn't exist, return all files as added
         return get_changed_files(since_commit=None, file_pattern=file_pattern)
 
     result: dict[str, list[str]] = {"added": [], "modified": [], "deleted": []}
@@ -73,10 +73,10 @@ def get_changed_files(
         if len(parts) < 2:
             continue
 
-        status = parts[0][0]  # 상태의 첫 번째 문자
-        file_path = parts[-1]  # 마지막 부분이 파일 경로 (이름 변경 처리)
+        status = parts[0][0]  # First character of status
+        file_path = parts[-1]  # Last part is file path (handles renames)
 
-        # 숨김 디렉토리와 chroma_db 제외
+        # Exclude hidden directories and chroma_db
         if any(part.startswith(".") for part in Path(file_path).parts):
             continue
         if "chroma_db" in file_path:
@@ -89,7 +89,7 @@ def get_changed_files(
         elif status == "D":
             result["deleted"].append(file_path)
         elif status == "R":
-            # 이름 변경: 이전 경로는 deleted, 새 경로는 added
+            # Rename: old path is deleted, new path is added
             if len(parts) >= 3:
                 result["deleted"].append(parts[1])
                 result["added"].append(parts[2])
@@ -98,13 +98,13 @@ def get_changed_files(
 
 
 def get_staged_files(file_pattern: str = "*.md") -> list[str]:
-    """커밋을 위해 스테이징된 파일 목록을 반환한다.
+    """Return list of files staged for commit.
 
     Args:
-        file_pattern: 파일 필터링 글롭 패턴
+        file_pattern: Glob pattern for file filtering.
 
     Returns:
-        스테이징된 파일 경로 리스트
+        List of staged file paths.
     """
     try:
         output = run_git_command(
@@ -125,7 +125,7 @@ def get_staged_files(file_pattern: str = "*.md") -> list[str]:
 
 
 def is_git_repo(path: Optional[Path] = None) -> bool:
-    """경로가 Git 저장소 내부인지 확인한다."""
+    """Check if the path is inside a Git repository."""
     path = path or Path.cwd()
     try:
         subprocess.run(

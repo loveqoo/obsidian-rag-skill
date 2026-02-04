@@ -3,123 +3,125 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-Git 기반 Obsidian Vault를 위한 시맨틱 검색 Claude Code 스킬입니다. ChromaDB와 임베딩을 활용하여 노트를 인덱싱하고 자연어로 검색할 수 있습니다.
+[한국어](README_ko.md)
 
-## 주요 기능
+A semantic search Claude Code skill for Git-based Obsidian Vaults. Uses ChromaDB and embeddings to index notes and enable natural language search.
 
-- **시맨틱 검색**: 키워드 매칭이 아닌 의미 기반 검색
-- **전체 인덱싱**: Vault의 모든 마크다운 파일을 한 번에 인덱싱
-- **증분 업데이트**: 변경된 파일만 선택적으로 업데이트
-- **Git 훅 지원**: push/pull 시 자동 인덱스 업데이트
-- **Obsidian 메타데이터 파싱**: YAML frontmatter, 태그, 위키링크 추출
+## Key Features
 
-## 요구사항
+- **Semantic Search**: Meaning-based search, not just keyword matching
+- **Full Indexing**: Index all markdown files in the vault at once
+- **Incremental Updates**: Selectively update only changed files
+- **Git Hook Support**: Automatic index updates on push/pull
+- **Obsidian Metadata Parsing**: Extracts YAML frontmatter, tags, and wikilinks
+
+## Requirements
 
 - Python 3.9-3.12
-- Git 저장소
+- Git repository
 
-## 빠른 시작
+## Quick Start
 
-### 1. 설치
+### 1. Installation
 
 ```bash
 cd .claude/skills/obsidian-rag/scripts
 ./setup.sh
 ```
 
-### 2. 전체 인덱싱
+### 2. Full Indexing
 
-Vault의 모든 마크다운 파일을 인덱싱합니다.
+Index all markdown files in the vault.
 
 ```bash
 python .claude/skills/obsidian-rag/scripts/obsidian_rag.py full-index
 ```
 
-### 3. 검색
+### 3. Search
 
 ```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py search --query "검색어" --top-k 5
+python .claude/skills/obsidian-rag/scripts/obsidian_rag.py search --query "search term" --top-k 5
 ```
 
-### 4. 증분 업데이트
+### 4. Incremental Update
 
-변경된 파일만 업데이트합니다.
+Update only changed files.
 
 ```bash
 python .claude/skills/obsidian-rag/scripts/obsidian_rag.py incremental-update
 ```
 
-## 명령어 목록
+## Commands
 
-| 명령어 | 설명 |
-|--------|------|
-| `full-index` | 모든 마크다운 파일 인덱싱 |
-| `incremental-update` | 변경된 파일만 업데이트 |
-| `search --query "..." --top-k N` | 시맨틱 검색 (기본 top-k: 5) |
-| `stats` | 인덱스 통계 확인 |
-| `test` | 테스트 실행 |
+| Command | Description |
+|---------|-------------|
+| `full-index` | Index all markdown files |
+| `incremental-update` | Update only changed files |
+| `search --query "..." --top-k N` | Semantic search (default top-k: 5) |
+| `stats` | Show index statistics |
+| `test` | Run tests |
 
-## Git 훅 설치
+## Git Hook Installation
 
-자동 인덱스 업데이트를 위해 Git 훅을 설치합니다.
+Install Git hooks for automatic index updates.
 
 ```bash
 ./scripts/install_hook.sh
 ```
 
-설치되는 훅:
-- **pre-push**: 푸시 전 변경된 마크다운 파일 인덱싱
-- **post-merge**: pull 후 새로 받은 마크다운 파일 인덱싱
+Installed hooks:
+- **pre-push**: Index changed markdown files before push
+- **post-merge**: Index newly received markdown files after pull
 
-## 디렉토리 구조
+## Directory Structure
 
 ```
 .claude/skills/obsidian-rag/
-├── SKILL.md                 # 스킬 설명 파일
+├── SKILL.md                 # Skill description file
 └── scripts/
-    ├── setup.sh             # 설치 스크립트
-    ├── install_hook.sh      # Git 훅 설치
-    ├── uninstall.sh         # 제거 스크립트
-    ├── obsidian_rag.py      # 메인 CLI
-    ├── requirements.txt     # Python 의존성
-    ├── lib/                 # 코어 라이브러리
+    ├── setup.sh             # Installation script
+    ├── install_hook.sh      # Git hook installation
+    ├── uninstall.sh         # Uninstall script
+    ├── obsidian_rag.py      # Main CLI
+    ├── requirements.txt     # Python dependencies
+    ├── lib/                 # Core library
     │   ├── chroma_manager.py
     │   ├── chunker.py
     │   ├── config.py
     │   ├── git_utils.py
     │   └── obsidian_parser.py
-    └── tests/               # 테스트 파일
+    └── tests/               # Test files
 ```
 
-## 테스트 실행
+## Running Tests
 
 ```bash
-# 기본 실행
+# Basic execution
 python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test
 
-# 상세 출력
+# Verbose output
 python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -v
 
-# 특정 패턴 테스트만 실행
+# Run specific pattern tests only
 python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -k "parser"
 ```
 
-## 제거
+## Uninstallation
 
 ```bash
 ./scripts/uninstall.sh
 ```
 
-## 검색 결과 형식
+## Search Result Format
 
 ```json
 {
-  "query": "검색어",
+  "query": "search term",
   "results": [
     {
       "file_path": "notes/example.md",
       "chunk_index": 0,
-      "content": "관련 내용...",
+      "content": "Related content...",
       "distance": 0.234,
       "metadata": {
         "title": "Example Note",
@@ -131,6 +133,6 @@ python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -k "parser"
 }
 ```
 
-## 라이선스
+## License
 
-MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+MIT License - See the [LICENSE](LICENSE) file for details.
