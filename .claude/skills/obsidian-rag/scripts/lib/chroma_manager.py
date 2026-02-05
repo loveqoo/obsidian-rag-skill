@@ -6,11 +6,15 @@ from typing import Optional
 
 import chromadb
 from chromadb.config import Settings
+from chromadb.utils import embedding_functions
 
 from .chunker import Chunk
 from .config import get_chroma_db_path
 
-COLLECTION_NAME = "obsidian_vault"
+# Multilingual embedding model for better Korean support
+EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+# Collection name includes model info to avoid conflicts when model changes
+COLLECTION_NAME = "obsidian_vault_multilingual"
 
 
 class ChromaManager:
@@ -25,8 +29,15 @@ class ChromaManager:
             path=str(self.db_path),
             settings=Settings(anonymized_telemetry=False),
         )
+
+        # Use multilingual embedding function for better Korean support
+        self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name=EMBEDDING_MODEL
+        )
+
         self.collection = self.client.get_or_create_collection(
             name=COLLECTION_NAME,
+            embedding_function=self.embedding_function,
             metadata={"hnsw:space": "cosine"},
         )
 

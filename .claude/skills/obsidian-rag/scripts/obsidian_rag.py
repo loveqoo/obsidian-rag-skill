@@ -3,9 +3,31 @@
 
 import argparse
 import json
+import logging
+import os
 import subprocess
 import sys
+import warnings
 from pathlib import Path
+
+# Suppress all transformers/sentence-transformers verbose output
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+# Disable tqdm progress bars globally
+try:
+    from functools import partialmethod
+    from tqdm import tqdm
+    tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
+except ImportError:
+    pass
+
+# Configure logging - suppress verbose model loading messages
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
 
 # Add lib path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -109,7 +131,9 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
     # Process deleted files
     for file_path in changes["deleted"]:
         try:
-            deleted = manager.delete_file(file_path)
+            # Convert to absolute path for matching with stored paths
+            full_path_str = str(vault_path / file_path)
+            deleted = manager.delete_file(full_path_str)
             chunks_deleted += deleted
             deleted_count += 1
         except Exception as e:
@@ -123,7 +147,9 @@ def cmd_incremental_update(args: argparse.Namespace) -> int:
 
         try:
             chunks = chunk_markdown_by_headers(full_path)
-            del_count, add_count = manager.update_file(file_path, chunks)
+            # Use absolute path for consistency with stored paths
+            full_path_str = str(full_path)
+            del_count, add_count = manager.update_file(full_path_str, chunks)
             chunks_deleted += del_count
             chunks_added += add_count
 

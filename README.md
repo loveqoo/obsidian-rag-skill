@@ -10,6 +10,7 @@ A semantic search Claude Code skill for Git-based Obsidian Vaults. Uses ChromaDB
 ## Key Features
 
 - **Semantic Search**: Meaning-based search, not just keyword matching
+- **Multilingual Support**: Uses `paraphrase-multilingual-MiniLM-L12-v2` embedding model (50+ languages including English, Korean, Japanese, Chinese, etc.)
 - **Full Indexing**: Index all markdown files in the vault at once
 - **Incremental Updates**: Selectively update only changed files
 - **Git Hook Support**: Automatic index updates on push/pull

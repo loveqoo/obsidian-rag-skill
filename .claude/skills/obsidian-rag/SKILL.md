@@ -1,6 +1,7 @@
 ---
 name: obsidian-rag
 description: Semantic search for Git-based Obsidian Vaults. Provides full indexing, incremental updates, and search capabilities.
+setup: ./scripts/setup.sh
 ---
 
 # Obsidian RAG Skill
@@ -12,52 +13,29 @@ A RAG (Retrieval-Augmented Generation) skill for Obsidian Vaults based on Git re
 - Git repository
 
 ## Installation
+Setup runs automatically when the skill is first invoked. It handles:
+- Python 3.9~3.12 detection (auto-installs via pyenv if needed)
+- Virtual environment creation and dependency installation
+- `.gitignore` configuration (`chroma_db/`, `.venv/`)
+- Git hook installation (`pre-push`, `post-merge`)
+
+To run manually:
 ```bash
-cd .claude/skills/obsidian-rag/scripts
-./setup.sh
+./scripts/setup.sh
 ```
 
 ## Usage
 
-### Full Indexing
-Index all markdown files in the vault.
+All commands use the venv Python directly:
 ```bash
-python scripts/obsidian_rag.py full-index
+.venv/bin/python scripts/obsidian_rag.py full-index              # Full indexing
+.venv/bin/python scripts/obsidian_rag.py incremental-update       # Incremental update
+.venv/bin/python scripts/obsidian_rag.py search --query "term"    # Search
+.venv/bin/python scripts/obsidian_rag.py stats                    # Statistics
+.venv/bin/python scripts/obsidian_rag.py test                     # Test
 ```
 
-### Incremental Update
-Update only files changed since the last indexing.
-```bash
-python scripts/obsidian_rag.py incremental-update
-```
-
-### Search
-Perform semantic search and return results in JSON format.
-```bash
-python scripts/obsidian_rag.py search --query "search term" --top-k 5
-```
-
-### Statistics
-View index statistics.
-```bash
-python scripts/obsidian_rag.py stats
-```
-
-### Test
-Run tests to verify functionality.
-```bash
-python scripts/obsidian_rag.py test           # Basic execution
-python scripts/obsidian_rag.py test -v        # Verbose output
-python scripts/obsidian_rag.py test -k "parser"  # Run specific pattern tests only
-```
-
-## Git Hook Installation
-Install Git hooks to automatically update the index on push/pull.
-```bash
-./scripts/install_hook.sh
-```
-
-Installed hooks:
+## Git Hooks (auto-installed)
 - **pre-push**: Index changed markdown files before push
 - **post-merge**: Index newly received markdown files after pull
 
