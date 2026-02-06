@@ -26,13 +26,15 @@ To run manually:
 
 ## Usage
 
-All commands use the venv Python directly:
+Setup automatically creates `obsidian-rag` wrapper script in the project root directory.
+All commands should be run from the **project root directory**:
+
 ```bash
-.venv/bin/python scripts/obsidian_rag.py full-index              # Full indexing
-.venv/bin/python scripts/obsidian_rag.py incremental-update       # Incremental update
-.venv/bin/python scripts/obsidian_rag.py search --query "term"    # Search
-.venv/bin/python scripts/obsidian_rag.py stats                    # Statistics
-.venv/bin/python scripts/obsidian_rag.py test                     # Test
+./obsidian-rag full-index              # Full indexing
+./obsidian-rag incremental-update       # Incremental update
+./obsidian-rag search --query "term"    # Search
+./obsidian-rag stats                    # Statistics
+./obsidian-rag test                     # Test
 ```
 
 ## Git Hooks (auto-installed)
