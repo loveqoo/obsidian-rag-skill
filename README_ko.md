@@ -23,22 +23,16 @@ Git 기반 Obsidian Vault를 위한 시맨틱 검색 Claude Code 스킬입니다
 
 ### 1. 설치
 
-```bash
-cd .claude/skills/obsidian-rag/scripts
-./setup.sh
-```
-
-설치 시 자동으로:
+스킬을 처음 실행하면 자동으로 설치됩니다:
 - Python 3.9-3.12 설치 (pyenv 사용, 필요 시)
-- 가상 환경 생성
-- 의존성 설치
+- 가상 환경 생성 및 의존성 설치
 - `.gitignore` 설정
-- Git 훅 설치
-- 프로젝트 루트에 `obsidian-rag` 편의 스크립트 생성
+- Git 훅 설치 (`pre-push`, `post-merge`)
+- 프로젝트 루트에 `obsidian-rag` 간편 스크립트 생성
 
 ### 2. 사용법
 
-설치 후 편의 스크립트로 간편하게 사용:
+모든 명령어는 **프로젝트 루트 디렉토리**에서 실행:
 
 ```bash
 # 전체 인덱싱
@@ -54,12 +48,6 @@ cd .claude/skills/obsidian-rag/scripts
 ./obsidian-rag stats
 ```
 
-또는 Python 스크립트를 직접 실행:
-
-```bash
-.claude/skills/obsidian-rag/.venv/bin/python .claude/skills/obsidian-rag/scripts/obsidian_rag.py <명령>
-```
-
 ## 명령어 목록
 
 | 명령어 | 설명 |
@@ -70,15 +58,9 @@ cd .claude/skills/obsidian-rag/scripts
 | `stats` | 인덱스 통계 확인 |
 | `test` | 테스트 실행 |
 
-## Git 훅 설치
+## Git 훅 (자동 설치)
 
-자동 인덱스 업데이트를 위해 Git 훅을 설치합니다.
-
-```bash
-./scripts/install_hook.sh
-```
-
-설치되는 훅:
+설치 시 자동으로 Git 훅이 설정됩니다:
 - **pre-push**: 푸시 전 변경된 마크다운 파일 인덱싱
 - **post-merge**: pull 후 새로 받은 마크다운 파일 인덱싱
 
@@ -106,19 +88,19 @@ cd .claude/skills/obsidian-rag/scripts
 
 ```bash
 # 기본 실행
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test
+./obsidian-rag test
 
 # 상세 출력
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -v
+./obsidian-rag test -v
 
 # 특정 패턴 테스트만 실행
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -k "parser"
+./obsidian-rag test -k "parser"
 ```
 
 ## 제거
 
 ```bash
-./scripts/uninstall.sh
+.claude/skills/obsidian-rag/scripts/uninstall.sh
 ```
 
 ## 검색 결과 형식

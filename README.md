@@ -25,22 +25,16 @@ A semantic search Claude Code skill for Git-based Obsidian Vaults. Uses ChromaDB
 
 ### 1. Installation
 
-```bash
-cd .claude/skills/obsidian-rag/scripts
-./setup.sh
-```
-
-Setup will automatically:
+Setup runs automatically when the skill is first invoked. It handles everything:
 - Install Python 3.9-3.12 via pyenv (if needed)
-- Create virtual environment
-- Install dependencies
+- Create virtual environment and install dependencies
 - Configure `.gitignore`
-- Install Git hooks
-- Create `obsidian-rag` convenience script in project root
+- Install Git hooks (`pre-push`, `post-merge`)
+- Create `obsidian-rag` wrapper script in project root
 
 ### 2. Usage
 
-After installation, you can use the convenient wrapper script:
+All commands run from the **project root directory**:
 
 ```bash
 # Full indexing
@@ -56,12 +50,6 @@ After installation, you can use the convenient wrapper script:
 ./obsidian-rag stats
 ```
 
-Or use the Python script directly:
-
-```bash
-.claude/skills/obsidian-rag/.venv/bin/python .claude/skills/obsidian-rag/scripts/obsidian_rag.py <command>
-```
-
 ## Commands
 
 | Command | Description |
@@ -72,15 +60,9 @@ Or use the Python script directly:
 | `stats` | Show index statistics |
 | `test` | Run tests |
 
-## Git Hook Installation
+## Git Hooks (auto-installed)
 
-Install Git hooks for automatic index updates.
-
-```bash
-./scripts/install_hook.sh
-```
-
-Installed hooks:
+Git hooks are automatically installed during setup:
 - **pre-push**: Index changed markdown files before push
 - **post-merge**: Index newly received markdown files after pull
 
@@ -108,19 +90,19 @@ Installed hooks:
 
 ```bash
 # Basic execution
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test
+./obsidian-rag test
 
 # Verbose output
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -v
+./obsidian-rag test -v
 
 # Run specific pattern tests only
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py test -k "parser"
+./obsidian-rag test -k "parser"
 ```
 
 ## Uninstallation
 
 ```bash
-./scripts/uninstall.sh
+.claude/skills/obsidian-rag/scripts/uninstall.sh
 ```
 
 ## Search Result Format
