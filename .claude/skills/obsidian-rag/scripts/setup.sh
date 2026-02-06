@@ -153,10 +153,15 @@ echo ""
 echo ""
 WRAPPER_SCRIPT="$PROJECT_ROOT/obsidian-rag"
 if [[ ! -f "$WRAPPER_SCRIPT" ]]; then
-    create_wrapper="Y"
-    # Try to read input if running interactively, otherwise default to yes
-    if [[ -t 0 ]]; then
+    # Check environment variable first, then try interactive, then default to no in non-interactive mode
+    if [[ -n "$OBSIDIAN_RAG_CREATE_WRAPPER" ]]; then
+        create_wrapper="$OBSIDIAN_RAG_CREATE_WRAPPER"
+    elif [[ -t 0 ]]; then
         read -p "Create convenience script 'obsidian-rag' in project root for easy access? (Y/n): " create_wrapper
+    else
+        create_wrapper="N"
+        echo "Skipping wrapper script creation (non-interactive mode)"
+        echo "To create it later, run: OBSIDIAN_RAG_CREATE_WRAPPER=yes .claude/skills/obsidian-rag/scripts/setup.sh"
     fi
     if [[ "$create_wrapper" != "n" && "$create_wrapper" != "N" ]]; then
         echo "Creating wrapper script: $WRAPPER_SCRIPT"
