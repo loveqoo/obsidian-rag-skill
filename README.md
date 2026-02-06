@@ -30,26 +30,36 @@ cd .claude/skills/obsidian-rag/scripts
 ./setup.sh
 ```
 
-### 2. Full Indexing
+Setup will automatically:
+- Install Python 3.9-3.12 via pyenv (if needed)
+- Create virtual environment
+- Install dependencies
+- Configure `.gitignore`
+- Install Git hooks
+- Create `obsidian-rag` convenience script in project root
 
-Index all markdown files in the vault.
+### 2. Usage
+
+After installation, you can use the convenient wrapper script:
 
 ```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py full-index
+# Full indexing
+./obsidian-rag full-index
+
+# Search
+./obsidian-rag search --query "search term" --top-k 5
+
+# Incremental update
+./obsidian-rag incremental-update
+
+# Statistics
+./obsidian-rag stats
 ```
 
-### 3. Search
+Or use the Python script directly:
 
 ```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py search --query "search term" --top-k 5
-```
-
-### 4. Incremental Update
-
-Update only changed files.
-
-```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py incremental-update
+.claude/skills/obsidian-rag/.venv/bin/python .claude/skills/obsidian-rag/scripts/obsidian_rag.py <command>
 ```
 
 ## Commands

@@ -28,26 +28,36 @@ cd .claude/skills/obsidian-rag/scripts
 ./setup.sh
 ```
 
-### 2. 전체 인덱싱
+설치 시 자동으로:
+- Python 3.9-3.12 설치 (pyenv 사용, 필요 시)
+- 가상 환경 생성
+- 의존성 설치
+- `.gitignore` 설정
+- Git 훅 설치
+- 프로젝트 루트에 `obsidian-rag` 편의 스크립트 생성
 
-Vault의 모든 마크다운 파일을 인덱싱합니다.
+### 2. 사용법
+
+설치 후 편의 스크립트로 간편하게 사용:
 
 ```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py full-index
+# 전체 인덱싱
+./obsidian-rag full-index
+
+# 검색
+./obsidian-rag search --query "검색어" --top-k 5
+
+# 증분 업데이트
+./obsidian-rag incremental-update
+
+# 통계
+./obsidian-rag stats
 ```
 
-### 3. 검색
+또는 Python 스크립트를 직접 실행:
 
 ```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py search --query "검색어" --top-k 5
-```
-
-### 4. 증분 업데이트
-
-변경된 파일만 업데이트합니다.
-
-```bash
-python .claude/skills/obsidian-rag/scripts/obsidian_rag.py incremental-update
+.claude/skills/obsidian-rag/.venv/bin/python .claude/skills/obsidian-rag/scripts/obsidian_rag.py <명령>
 ```
 
 ## 명령어 목록

@@ -58,6 +58,13 @@ if [[ -f "$CONFIG_FILE" ]]; then
     rm "$CONFIG_FILE"
 fi
 
+# Delete wrapper script
+WRAPPER_SCRIPT="$PROJECT_ROOT/obsidian-rag"
+if [[ -f "$WRAPPER_SCRIPT" ]]; then
+    echo "Deleting wrapper script..."
+    rm "$WRAPPER_SCRIPT"
+fi
+
 # Confirm skill folder deletion
 read -p "Delete skill folder ($SKILL_DIR) as well? (y/N): " delete_skill
 if [[ "$delete_skill" == "y" || "$delete_skill" == "Y" ]]; then
