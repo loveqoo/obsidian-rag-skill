@@ -153,7 +153,11 @@ echo ""
 echo ""
 WRAPPER_SCRIPT="$PROJECT_ROOT/obsidian-rag"
 if [[ ! -f "$WRAPPER_SCRIPT" ]]; then
-    read -p "Create convenience script 'obsidian-rag' in project root for easy access? (Y/n): " create_wrapper
+    create_wrapper="Y"
+    # Try to read input if running interactively, otherwise default to yes
+    if [[ -t 0 ]]; then
+        read -p "Create convenience script 'obsidian-rag' in project root for easy access? (Y/n): " create_wrapper
+    fi
     if [[ "$create_wrapper" != "n" && "$create_wrapper" != "N" ]]; then
         echo "Creating wrapper script: $WRAPPER_SCRIPT"
         cat > "$WRAPPER_SCRIPT" << 'WRAPPEREOF'
