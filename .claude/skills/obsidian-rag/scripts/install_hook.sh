@@ -5,45 +5,45 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 
-echo "=== Git 훅 설치 ==="
+echo "=== Installing Git Hooks ==="
 
-# Git 저장소인지 확인
+# Check if Git repository
 if ! git -C "$PROJECT_ROOT" rev-parse --git-dir > /dev/null 2>&1; then
-    echo "오류: Git 저장소가 아닙니다."
+    echo "Error: Not a Git repository."
     exit 1
 fi
 
-# hooks 디렉토리 생성
+# Create hooks directory
 mkdir -p "$HOOKS_DIR"
 
-# 훅 설치 함수
+# Hook installation function
 install_hook() {
     local HOOK_NAME=$1
     local HOOK_FILE="$HOOKS_DIR/$HOOK_NAME"
     local HOOK_CONTENT=$2
 
-    # 기존 훅 백업
+    # Backup existing hook
     if [[ -f "$HOOK_FILE" ]]; then
         if ! grep -q "# obsidian-rag-hook" "$HOOK_FILE"; then
-            echo "기존 $HOOK_NAME 훅을 $HOOK_FILE.backup으로 백업 중"
+            echo "Backing up existing $HOOK_NAME hook to $HOOK_FILE.backup"
             cp "$HOOK_FILE" "$HOOK_FILE.backup"
             CHAIN_EXISTING=true
         else
-            echo "Obsidian RAG $HOOK_NAME 훅이 이미 설치됨. 업데이트 중..."
+            echo "Obsidian RAG $HOOK_NAME hook already installed. Updating..."
             CHAIN_EXISTING=false
         fi
     else
         CHAIN_EXISTING=false
     fi
 
-    # 훅 스크립트 생성
+    # Create hook script
     echo "$HOOK_CONTENT" > "$HOOK_FILE"
 
-    # 기존 훅 체이닝
+    # Chain existing hook
     if [[ "$CHAIN_EXISTING" == "true" ]]; then
         cat >> "$HOOK_FILE" << CHAINEOF
 
-# 기존 $HOOK_NAME 훅 체이닝
+# Chain existing $HOOK_NAME hook
 if [[ -f "$HOOK_FILE.backup" ]]; then
     "$HOOK_FILE.backup" "\$@"
 fi
@@ -51,10 +51,10 @@ CHAINEOF
     fi
 
     chmod +x "$HOOK_FILE"
-    echo "설치됨: $HOOK_FILE"
+    echo "Installed: $HOOK_FILE"
 }
 
-# pre-push 훅 내용
+# pre-push hook content
 PREPUSH_HOOK='#!/bin/bash
 # obsidian-rag-hook
 
@@ -63,22 +63,22 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SKILL_DIR="$PROJECT_ROOT/.claude/skills/obsidian-rag"
 VENV_DIR="$SKILL_DIR/.venv"
 
-# 푸시할 마크다운 파일 변경 확인
+# Check for markdown file changes to push
 CHANGED_MD=$(git diff --cached --name-only --diff-filter=ACDMR | grep '\''\.md$'\'' || true)
 
 if [[ -n "$CHANGED_MD" ]]; then
-    echo "마크다운 파일 변경 감지. 증분 업데이트 실행 중..."
+    echo "Markdown file changes detected. Running incremental update..."
 
     if [[ -f "$VENV_DIR/bin/python" ]]; then
         "$VENV_DIR/bin/python" "$SKILL_DIR/scripts/obsidian_rag.py" incremental-update
     else
-        echo "경고: Obsidian RAG 가상 환경을 찾을 수 없습니다. 증분 업데이트 건너뜀."
-        echo "설치하려면 실행: $SKILL_DIR/scripts/setup.sh"
+        echo "Warning: Obsidian RAG virtual environment not found. Skipping incremental update."
+        echo "To install, run: $SKILL_DIR/scripts/setup.sh"
     fi
 fi
 '
 
-# post-merge 훅 내용 (git pull 후 트리거)
+# post-merge hook content (triggered after git pull)
 POSTMERGE_HOOK='#!/bin/bash
 # obsidian-rag-hook
 
@@ -87,29 +87,29 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SKILL_DIR="$PROJECT_ROOT/.claude/skills/obsidian-rag"
 VENV_DIR="$SKILL_DIR/.venv"
 
-# 병합에서 변경된 마크다운 파일 확인
-# ORIG_HEAD는 병합 전 커밋, HEAD는 병합 후 커밋
+# Check for markdown file changes in merge
+# ORIG_HEAD is pre-merge commit, HEAD is post-merge commit
 CHANGED_MD=$(git diff --name-only ORIG_HEAD HEAD | grep '\''\.md$'\'' || true)
 
 if [[ -n "$CHANGED_MD" ]]; then
-    echo "pull에서 마크다운 파일 변경 감지. 증분 업데이트 실행 중..."
+    echo "Markdown file changes detected from pull. Running incremental update..."
 
     if [[ -f "$VENV_DIR/bin/python" ]]; then
         "$VENV_DIR/bin/python" "$SKILL_DIR/scripts/obsidian_rag.py" incremental-update
     else
-        echo "경고: Obsidian RAG 가상 환경을 찾을 수 없습니다. 증분 업데이트 건너뜀."
-        echo "설치하려면 실행: $SKILL_DIR/scripts/setup.sh"
+        echo "Warning: Obsidian RAG virtual environment not found. Skipping incremental update."
+        echo "To install, run: $SKILL_DIR/scripts/setup.sh"
     fi
 fi
 '
 
-# 두 훅 모두 설치
+# Install both hooks
 install_hook "pre-push" "$PREPUSH_HOOK"
 install_hook "post-merge" "$POSTMERGE_HOOK"
 
 echo ""
-echo "=== 훅 설치 완료 ==="
+echo "=== Hook Installation Complete ==="
 echo ""
-echo "설치된 훅:"
-echo "  - pre-push: 마크다운 변경 푸시 전 인덱스 업데이트"
-echo "  - post-merge: 마크다운 변경 pull 후 인덱스 업데이트"
+echo "Installed hooks:"
+echo "  - pre-push: Update index before pushing markdown changes"
+echo "  - post-merge: Update index after pulling markdown changes"
