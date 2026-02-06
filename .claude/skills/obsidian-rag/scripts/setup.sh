@@ -2,8 +2,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Get project root from current directory (supports running from any project)
+PROJECT_ROOT="$(cd "$(pwd)" && git rev-parse --show-toplevel 2>/dev/null || echo ".")"
 VENV_DIR="$SKILL_DIR/.venv"
 
 echo "=== Obsidian RAG Setup ==="
